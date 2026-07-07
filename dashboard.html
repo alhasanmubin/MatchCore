@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament Management Dashboard</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+
+    <div class="topbar">
+        <button id="menuToggle" aria-label="Toggle Navigation Menu">☰</button>
+        <h3>Tournament Management Admin</h3>
+    </div>
+
+    <div class="layout-container">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Tournament Management</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active" data-page="dashboard">🏆 Points Table</li>
+                    <li data-page="live">⚽ Live Match</li>
+                    <li data-page="schedule"><span class="dynamic-calendar-target"></span> Schedule Manager</li>
+                    <li data-page="teams">🏟 Team Manager</li>
+                    <li data-page="formations">📋 Formation Manager</li>
+                    <li data-page="rules">📝 Tournament Rules</li>
+                    <li data-page="settings">⚙ Settings</li>
+                    <li id="logoutBtn">🚪 Logout</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <!-- PWA এবং আনডু পপআপ ডক ব্যারার (Micro-Interactions) -->
+            <div id="pwa-banner" class="hidden" style="background:rgba(0, 240, 255, 0.12); border: 1.5px solid #00f0ff; padding:15px; border-radius:12px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:13px; color:#fff; font-weight:700;">📲 Install MatchCore Live Hub App for offline capability and native mobile experience?</span>
+                <div style="display:flex; gap:10px;">
+                    <button id="pwaInstallBtn" class="btn-success" style="width:auto; margin-top:0; padding:6px 14px; font-size:12px;">Install</button>
+                    <button id="pwaDismissBtn" class="btn-danger-outline" style="width:auto; margin-top:0; padding:6px 14px; font-size:12px;">Later</button>
+                </div>
+            </div>
+
+            <div id="undo-banner" class="hidden" style="position:fixed; top:20px; right:20px; z-index:999999; background:#111722; border: 1.5px solid #ffd54f; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; gap:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); width:320px;">
+                <span id="undoMessage" style="font-size:12px; color:#fff; font-weight:700;">Action deleted.</span>
+                <button id="undoActionBtn" class="btn-primary" style="width:auto; margin-top:0; padding:5px 12px; font-size:11px; background:#ffd54f !important; color:#111 !important;">↩ Undo (5s)</button>
+            </div>
+
+            <header class="main-header">
+                <h1 id="pageTitle">🏆 Points Table</h1>
+            </header>
+            <section class="card page active" id="dashboard">
+                <div class="sectionHeader">
+                    <h2>🏆 Standings Table</h2>
+                    <button type="button" id="resetPointsBtn" class="miniDanger">Reset Standings</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Team</th>
+                                <th>MP</th>
+                                <th>W</th>
+                                <th>D</th>
+                                <th>L</th>
+                                <th>GF</th>
+                                <th>GA</th>
+                                <th>GD</th>
+                                <th>PTS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card page" id="live">
+                <h2>⚽ Match Control Center</h2>
+                
+                <div class="teamSelection">
+
+    <div class="teamSelectCard">
+
+        <img id="teamALogo"
+             src="https://placehold.co/100x100?text=HOME"
+             class="liveLogo">
+
+        <label>Home Team</label>
+
+        <input
+            list="teamList"
+            id="teamA"
+            placeholder="Type Home Team">
+
+    </div>
+
+    <div class="liveVs">
+        VS
+    </div>
+
+    <div class="teamSelectCard">
+
+        <img id="teamBLogo"
+             src="https://placehold.co/100x100?text=AWAY"
+             class="liveLogo">
+
+        <label>Away Team</label>
+
+        <input
+            list="teamList"
+            id="teamB"
+            placeholder="Type Away Team">
+
+    </div>
+
+</div>
+
+                <!-- টিম ইনপুট লক রিলিজ করার এলিট গেম ওয়ার্নিং বাটন -->
+                <div style="text-align: center; margin-top: -10px; margin-bottom: 20px;">
+                    <button type="button" id="unlockTeamsBtn" class="miniDanger hidden">🔓 Reset & Change Active Teams</button>
+                </div>
+
+                <div class="scoreControl">
+                    <div class="teamScore">
+                        <h3 id="homeScore">0</h3>
+                        <div class="btn-group">
+                            <button id="homeMinus">−</button>
+                            <button id="homePlus">+</button>
+                        </div>
+                    </div>
+                    <div class="vsBox">VS</div>
+                    <div class="teamScore">
+                        <h3 id="awayScore">0</h3>
+                        <div class="btn-group">
+                            <button id="awayMinus">−</button>
+                            <button id="awayPlus">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row-grid">
+                    <div>
+                        <label for="status">Match Status</label>
+                        <select id="status">
+                            <option value="LIVE">LIVE MATCH</option>
+                            <option value="HALF_TIME">HALF TIME BREAK</option>
+                            <option value="PAUSED">PAUSED</option>
+                            <option value="FULL_TIME">FULL TIME</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="matchTime">Match Time</label>
+                        <input type="text" id="matchTime" placeholder="45:00">
+                    </div>
+                </div>
+                <div class="form-group">
+    <label for="matchDuration">Match Duration</label>
+
+    <select id="matchDuration">
+
+    <option value="70">70 Minutes</option>
+
+    <option value="90" selected>90 Minutes</option>
+
+    <option value="120">120 Minutes</option>
+
+    <option value="custom">Custom</option>
+
+</select>
+
+<input
+type="number"
+id="customDuration"
+placeholder="Enter Minutes"
+min="1"
+style="display:none;">
+
+</div>
+                <div class="form-group">
+                    <label>Additional Time</label>
+                    <div class="extraTimeBox">
+                        <button type="button" id="minusExtra">−</button>
+                        <input type="number" id="extraTime" value="0" min="0" readonly>
+                        <button type="button" id="plusExtra">+</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label id="lblCommentary" for="commentary">Commentary</label>
+                    <textarea id="commentary" rows="4" placeholder="Enter matching events text..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label id="lblYoutube" for="youtubeUrl">Live Stream URL</label>
+                    <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/embed/...">
+                </div>
+                <div class="form-actions">
+
+    <button
+        id="updateMatch"
+        class="btn-primary">
+
+        🚀 Update Match
+
+    </button>
+     </div>
+
+                <div class="timeline-section">
+                    <div class="sectionHeader">
+
+<h3 id="lblGoals">⚽ Goal Timeline</h3>
+
+<button
+type="button"
+id="resetGoals"
+class="miniDanger">
+
+Reset
+
+</button>
+
+</div>
+                    <div class="eventForm">
+                        <input type="text" id="goalPlayer" placeholder="Player Name">
+                        <input type="number" id="goalMinute" placeholder="Min" min="1" max="130">
+                        <select id="goalTeam">
+                            <option value="home">Home</option>
+                            <option value="away">Away</option>
+                        </select>
+                        <button type="button" id="addGoal">➕ Add Goal</button>
+                    </div>
+                    <div id="goalTimeline" class="timeline-display"></div>
+                </div>
+
+                <div class="timeline-section">
+                    <div class="sectionHeader">
+
+<h3 id="lblCards">
+
+🟨 Cards
+<span id="cardCounter">
+
+0 Yellow • 0 Red
+
+</span>
+
+</h3>
+
+<button
+type="button"
+id="resetCards"
+class="miniDanger">
+
+Reset
+
+</button>
+
+</div>
+                    <div class="eventForm">
+                        <input type="text" id="cardPlayer" placeholder="Player Name">
+                        <input type="number" id="cardMinute" placeholder="Min" min="1" max="130">
+                        <select id="cardType">
+                            <option value="Yellow">Yellow</option>
+                            <option value="Red">Red</option>
+                        </select>
+                        <select id="cardTeam">
+                            <option value="home">Home</option>
+                            <option value="away">Away</option>
+                        </select>
+                        <button type="button" id="addCard">➕ Add Card</button>
+                    </div>
+                    <div id="cardTimeline" class="timeline-display"></div>
+                </div>
+
+                <div class="timeline-section" id="lblPenaltySection">
+                    <h3>🥅 Penalty Shootout Control</h3>
+                    <div class="penaltyLiveBoard">
+
+<div class="penTeam">
+
+<h4 id="penHomeHeader">Home</h4>
+
+<div id="penHomeIcons">
+
+</div>
+
+</div>
+
+<div class="penTeam">
+
+<h4 id="penAwayHeader">Away</h4>
+
+<div id="penAwayIcons">
+
+</div>
+
+</div>
+
+</div>
+                    <div class="eventForm custom-penalty-inputs">
+                        <select id="penaltyTeam">
+                            <option value="home">Home Team</option>
+                            <option value="away">Away Team</option>
+                        </select>
+                        <input id="penaltyPlayer" placeholder="Penalty Taker Name">
+                        <select id="penaltyOutcome">
+
+<option value="goal">
+
+⚽ Goal
+
+</option>
+
+<option value="miss">
+
+❌ Miss
+
+</option>
+
+</select>
+                        <button type="button" id="savePenaltyEvent">Record Shot</button>
+                    </div>
+                    <div id="penaltyTimeline" class="timeline-display"></div>
+                    <div class="penalty-actions">
+                        <span id="penaltyWinnerNotice" class="winner-alert">Winner: None</span>
+                        <button id="resetPenaltyBtn" class="btn-danger-outline">Reset Penalty Data</button>
+                    </div>
+                </div>
+
+               
+ <div class="form-actions">
+
+    <button
+        id="saveMatch"
+        class="btn-success">
+
+        💾 Save Final Match
+
+    </button>
+
+</div>
+            </section>
+
+            <section class="card page" id="schedule">
+                <h2>🗂 Schedule Manager</h2>
+                <div class="form-group row-grid">
+                    <div>
+                        <label for="s_teamA">Home Team</label>
+                        <input list="teamList" id="s_teamA" placeholder="Select Home Team">
+                    </div>
+                    <div>
+                        <label for="s_teamB">Away Team</label>
+                        <input list="teamList" id="s_teamB" placeholder="Select Away Team">
+                    </div>
+                </div>
+                <div class="form-group row-grid">
+                    <div>
+                        <label for="s_date">Match Date</label>
+                        <input type="date" id="s_date">
+                    </div>
+                    <div>
+                        <label for="s_time">Kick-off Time</label>
+                        <input type="time" id="s_time">
+                    </div>
+                </div>
+                <div class="form-group row-grid">
+                    <div>
+                        <label for="s_venue">Venue</label>
+                        <input type="text" id="s_venue" placeholder="Stadium Name">
+                    </div>
+                    <div>
+                        <label for="s_stage">Stage</label>
+                        <select id="s_stage">
+                            <option value="Group Stage">Group Stage</option>
+                            <option value="Round of 16">Round of 16</option>
+                            <option value="Quarter Final">Quarter Final</option>
+                            <option value="Semi Final">Semi Final</option>
+                            <option value="Final">Final</option>
+                        </select>
+                    </div>
+                    <div id="scheduleStatusCol" class="hidden">
+                        <label for="s_status">Match Status</label>
+                        <select id="s_status">
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="LIVE">LIVE</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="addSchedule" class="btn-primary">➕ Save Scheduled Match</button>
+
+               <hr class="section-divider">
+
+<h3>📋 Match List</h3>
+
+<div class="table-container">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Home</th>
+
+<th>Away</th>
+
+<th>Date</th>
+
+<th>Time</th>
+
+<th>Stage</th>
+
+<th>Status</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody id="scheduleTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+<hr class="section-divider">
+
+<div class="summaryBox">
+
+<h3>📊 Schedule Summary</h3>
+
+<p>
+⚽ Total Matches :
+<span id="totalMatches">0</span>
+</p>
+
+<p>
+✅ Completed :
+<span id="completedMatches">0</span>
+</p>
+
+<p>
+⏳ Remaining :
+<span id="remainingMatches">0</span>
+</p>
+
+<p>
+👀 Viewer Showing :
+<span id="viewerCount">Last 5 Matches</span>
+</p>
+
+</div>
+<hr class="section-divider">
+
+<h3>👀 Viewer Schedule Control</h3>
+
+<label>
+
+<input type="radio"
+name="viewerMode"
+value="all">
+
+Show Full Schedule
+
+</label>
+
+<br><br>
+
+<label>
+
+<input type="radio"
+name="viewerMode"
+value="last"
+checked>
+
+Show Last
+
+</label>
+
+<input
+type="number"
+id="viewerLimit"
+value="5"
+min="1"
+style="width:70px;">
+
+Matches
+
+<br><br>
+
+<button
+id="updateViewerSchedule"
+class="btn-primary">
+
+Update Viewer
+
+</button>
+            </section>
+
+            <section class="card page" id="teams">
+                <h2>🏟 Team Management</h2>
+                <div class="search-box">
+                    <input type="search" id="searchTeam" placeholder="🔍 Search existing teams...">
+                </div>
+
+                <div class="form-group">
+                    <label for="teamName">Team Name</label>
+                    <input list="teamList" id="teamName" placeholder="Enter Team Name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="teamLogo">Team Logo File</label>
+                    <input type="file" id="teamLogo" accept="image/png,image/jpeg,image/jpg,image/webp">
+                    <div class="logoPreviewCard">
+
+    <img id="logoPreview"
+         src="https://placehold.co/150x150?text=LOGO">
+
+    <h3 id="previewTeamName">
+        Team Name
+    </h3>
+
+</div>
+                </div>
+
+                <div class="form-actions">
+    <button id="saveTeam" class="btn-primary">💾 Save Team</button>
+    <button id="deleteTeam" class="btn-danger">🗑 Delete Team</button>
+</div>
+
+              
+
+               <hr class="section-divider">
+
+<div class="summaryBox">
+
+<h3>📊 Summary</h3>
+
+<p>
+Registered Teams :
+<span id="registeredTeams">0</span>
+</p>
+
+<p>
+Completed Matches :
+<span id="completedTeamMatches">0</span>
+</p>
+
+<p>
+Upcoming Matches :
+<span id="upcomingMatches">0</span>
+</p>
+
+</div>
+
+<h3>👥 Team List</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+
+<tr>
+
+<th>Logo</th>
+
+<th>Team</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+                        <tbody id="teamTable"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card page" id="rules">
+                <h2>🏆 Tournament Rules Configuration</h2>
+                <div class="form-group row-grid">
+                    <div>
+                        <label for="winPoint">Win Points Allocation</label>
+                        <input type="number" id="winPoint" value="3">
+                    </div>
+                    <div>
+                        <label for="drawPoint">Draw Points Allocation</label>
+                        <input type="number" id="drawPoint" value="1">
+                    </div>
+                    <div>
+                        <label for="lossPoint">Loss Points Allocation</label>
+                        <input type="number" id="lossPoint" value="0">
+                    </div>
+                </div>
+                <div class="form-group row-grid">
+                    <div>
+                        <label for="goalBonus">Goal Bonus Point Trigger</label>
+                        <input type="number" id="goalBonus" value="0">
+                    </div>
+                    <div>
+                        <label for="yellowPenalty">Yellow Card Point Fine</label>
+                        <input type="number" id="yellowPenalty" value="0">
+                    </div>
+                    <div>
+                        <label for="redPenalty">Red Card Point Fine</label>
+                        <input type="number" id="redPenalty" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fairPlayBonus">Fair Play Global Base Points</label>
+                    <input type="number" id="fairPlayBonus" value="0">
+                </div>
+                <button id="saveRules" class="btn-primary">💾 Save Tournament Rules</button>
+            </section>
+
+            <section class="card page" id="settings">
+                <h2>⚙ Tournament Core Settings</h2>
+                
+                <div class="settings-group">
+                    <h3>👁 Viewer Controls Toggle</h3>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" id="showGoals" checked> Display Goal Timeline</label>
+                        <label><input type="checkbox" id="showCards" checked> Display Card Timeline</label>
+                        <label><input type="checkbox" id="showStats" checked> Display Match Statistics</label>
+                        <label><input type="checkbox" id="showPenalty" checked> Display Penalty Shootout</label>
+                        <label><input type="checkbox" id="showCommentary" checked> Display Commentary</label>
+                        <label><input type="checkbox" id="showYoutube" checked> Display YouTube Live</label>
+                    </div>
+                </div>
+
+                <div class="form-group row-grid">
+                    <div>
+                        <label for="tournamentName">Tournament Branding Name</label>
+                        <input type="text" id="tournamentName" placeholder="Champions Cup">
+                    </div>
+                    <div>
+                        <label for="season">Active Season</label>
+                        <input type="text" id="season" placeholder="2026/2027">
+                    </div>
+                </div>
+
+                <div class="form-group row-grid">
+                    <div>
+                        <label for="bannerFile">Tournament Banner Image</label>
+                        <input type="file" id="bannerFile" accept="image/png,image/jpeg,image/webp">
+                        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px; align-items: flex-start;">
+                            <img id="bannerPreview" src="" style="max-height: 80px; display: none; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                            <button type="button" id="deleteBannerBtn" class="miniDanger hidden">🗑️ Delete Banner</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="bgFile">Application Background Image</label>
+                        <input type="file" id="bgFile" accept="image/png,image/jpeg,image/webp">
+                        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px; align-items: flex-start;">
+                            <img id="bgPreview" src="" style="max-height: 80px; display: none; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                            <button type="button" id="deleteBgBtn" class="miniDanger hidden">🗑️ Delete Background</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="saveTournament" class="btn-primary">💾 Save Tournament Configurations</button>
+            </section>
+
+            <!-- ========================================================== -->
+            <!-- NEW SECTION: FORMATION MANAGER -->
+            <!-- ========================================================== -->
+            <!-- ========================================================== -->
+            <!-- SECTION: FORMATION MANAGER V3 (ULTIMATE ARCHITECTURE) -->
+            <!-- ========================================================== -->
+            <section class="card page" id="formations">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <h2>📋 Formation & Player Squad Manager <span style="font-size:12px; background:rgba(0,240,255,0.1); color:#00f0ff; padding:3px 8px; border-radius:12px; font-weight:900;">V3 Pro</span></h2>
+                </div>
+                
+                <div class="tabs-nav" style="margin-top:15px; margin-bottom: 20px;">
+                    <button class="tab-btn active" id="btn-squad-tab" data-subtab="squad-db">👥 Player Roster</button>
+                    <button class="tab-btn" id="btn-builder-tab" data-subtab="formation-builder">🏟 Formation Pitch Engine</button>
+                </div>
+
+                <!-- SUB-TAB 1: PLAYER ROSTER DATABASE -->
+                <div id="squad-db" class="squad-sub-content">
+                    <div class="form-group" style="margin-bottom:20px;">
+                        <label for="f_teamSelect">Select Active Team</label>
+                        <select id="f_teamSelect" class="form-control"></select>
+                    </div>
+
+                    <div class="row-grid" style="grid-template-columns: 1fr 2fr; gap:20px;">
+                        <!-- Add/Edit Player Form -->
+                        <div class="card" style="background: rgba(13, 17, 29, 0.85); border: 1px solid rgba(0, 240, 255, 0.1); padding: 18px;">
+                            <h3 id="playerFormTitle" style="font-size:15px; color:#00f0ff; margin-bottom:12px;">➕ Add New Player</h3>
+                            <input type="hidden" id="editingPlayerId">
+                            
+                            <label for="p_name">Full Name</label>
+                            <input type="text" id="p_name" placeholder="Cristiano Ronaldo">
+
+                            <label for="p_number">Jersey Number</label>
+                            <input type="number" id="p_number" placeholder="7" min="1" max="99">
+
+                            <label for="p_prefPos">Preferred Position</label>
+                            <select id="p_prefPos">
+                                <option value="GK">Goalkeeper (GK)</option>
+                                <option value="CB">Center Back (CB)</option>
+                                <option value="LB">Left Back (LB)</option>
+                                <option value="RB">Right Back (RB)</option>
+                                <option value="LWB">Left Wing Back (LWB)</option>
+                                <option value="RWB">Right Wing Back (RWB)</option>
+                                <option value="CDM">Defensive Midfielder (CDM)</option>
+                                <option value="CM">Central Midfielder (CM)</option>
+                                <option value="CAM">Attacking Midfielder (CAM)</option>
+                                <option value="LM">Left Midfielder (LM)</option>
+                                <option value="RM">Right Midfielder (RM)</option>
+                                <option value="LW">Left Winger (LW)</option>
+                                <option value="RW">Right Winger (RW)</option>
+                                <option value="CF">Center Forward (CF)</option>
+                                <option value="ST">Striker (ST)</option>
+                            </select>
+
+                            <label for="p_secPos">Secondary Position (Optional)</label>
+                            <input type="text" id="p_secPos" placeholder="e.g. LW, CF">
+
+                            <label for="p_nationality">Nationality</label>
+                            <input type="text" id="p_nationality" placeholder="Bangladesh">
+
+                            <div class="row-grid" style="grid-template-columns: 1fr 1fr; gap:10px;">
+                                <div>
+                                    <label for="p_age">Age</label>
+                                    <input type="number" id="p_age" placeholder="24">
+                                </div>
+                                <div>
+                                    <label for="p_foot">Preferred Foot</label>
+                                    <select id="p_foot">
+                                        <option value="Right">Right Foot</option>
+                                        <option value="Left">Left Foot</option>
+                                        <option value="Ambidextrous">Both Feet</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row-grid" style="grid-template-columns: 1fr 1fr; gap:10px;">
+                                <div>
+                                    <label for="p_height">Height (cm)</label>
+                                    <input type="number" id="p_height" placeholder="180">
+                                </div>
+                                <div>
+                                    <label for="p_weight">Weight (kg)</label>
+                                    <input type="number" id="p_weight" placeholder="75">
+                                </div>
+                            </div>
+
+                            <label for="p_photo">Photo URL</label>
+                            <input type="text" id="p_photo" placeholder="https://res.cloudinary.com/...">
+
+                            <label for="p_status">Squad Status</label>
+                            <select id="p_status">
+                                <option value="Active">Active</option>
+                                <option value="Bench">Bench</option>
+                                <option value="Injured">Injured 🚑</option>
+                                <option value="Suspended">Suspended 🟥</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+
+                            <div style="display:flex; justify-content:space-between; margin-top:15px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                                <label style="font-size:11px; font-weight:normal; display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+                                    <input type="checkbox" id="p_isCaptain"> Captain
+                                </label>
+                                <label style="font-size:11px; font-weight:normal; display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+                                    <input type="checkbox" id="p_isViceCaptain"> Vice Captain
+                                </label>
+                            </div>
+
+                            <div style="display:flex; gap:10px; margin-top:15px;">
+                                <button id="savePlayerBtn" class="btn-primary" style="margin-top:0; font-size:14px; padding:10px;">Save Player</button>
+                                <button id="cancelPlayerEditBtn" class="btn-danger-outline" style="margin-top:0; display:none; font-size:14px; padding:10px;">Cancel</button>
+                            </div>
+                        </div>
+
+                        <!-- Player List Table -->
+                        <div class="card" style="background: rgba(13, 17, 29, 0.85); border: 1px solid rgba(0, 240, 255, 0.1); padding: 18px;">
+                            <h3>👥 Squad Roster (<span id="squadCount">0</span> Players)</h3>
+                            <div class="table-container" style="max-height: 440px; overflow-y:auto; margin-top:12px;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Photo</th>
+                                            <th>Name</th>
+                                            <th>No.</th>
+                                            <th>Pos</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="playerTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB 2: FORMATION BUILDER ENGINE -->
+                <div id="formation-builder" class="squad-sub-content" style="display:none;">
+                    <div class="row-grid" style="grid-template-columns: 1.5fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label for="activeFormationSelect">Select Formation Config</label>
+                            <div style="display: flex; gap: 10px;">
+                                <select id="activeFormationSelect" style="flex: 1;"></select>
+                                <button id="createFormationBtn" class="btn-success" style="width:auto; margin-top:0; padding:0 15px; font-size:13px;">Create New</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label>Formation Controls</label>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="renameFormationBtn" class="btn-primary" style="margin-top:0; font-size:12px; padding:10px;">Rename</button>
+                                <button id="duplicateFormationBtn" class="btn-success" style="margin-top:0; font-size:12px; padding:10px;">Duplicate</button>
+                                <button id="deleteFormationBtn" class="btn-danger" style="margin-top:0; font-size:12px; padding:10px;">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: rgba(255,255,255,0.02); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span id="defaultFormationBadge" style="background: #ffd54f; color:#111; padding:3px 10px; border-radius:4px; font-weight:900; font-size:11px; display:none;">★ DEFAULT</span>
+                            <button id="setDefaultFormationBtn" class="btn-primary" style="width:auto; margin-top:0; font-size:11px; padding: 5px 10px; display:inline-block;">Set Default</button>
+                            <button id="favFormationBtn" style="background:transparent; border:none; font-size:20px; cursor:pointer; color:#7e8797; padding:0 5px;" title="Favorite Formation">☆</button>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 13px; font-weight: 700; color:#aaa;">Layout State:</span>
+                            <button id="layoutLockBtn" class="btn-success" style="width:auto; margin-top:0; padding: 6px 14px; font-size:12px;">🔓 Unlocked (Edit Slots)</button>
+                        </div>
+                    </div>
+
+                    <div class="formation-editor-grid">
+                        
+                        <!-- Left Panel: Smart Selection & Bench -->
+                        <div class="formation-panel list-panel">
+                            <h3>👥 Squad Selection</h3>
+                            <div class="search-box" style="margin-top: 10px; margin-bottom: 10px;">
+                                <input type="search" id="f_searchPlayer" placeholder="🔍 Name, position, number..." style="padding:10px; font-size:13px; width:100%; margin-bottom: 0;">
+                            </div>
+                            <div class="filters-row">
+                                <button class="filter-chip active" data-filter="all">All</button>
+                                <button class="filter-chip" data-filter="GK">GK</button>
+                                <button class="filter-chip" data-filter="DEF">DEF</button>
+                                <button class="filter-chip" data-filter="MID">MID</button>
+                                <button class="filter-chip" data-filter="ATT">ATT</button>
+                            </div>
+                            <div class="player-draggable-container" id="draggablePlayerList"></div>
+
+                            <h3 style="margin-top:20px; font-size: 14px;">📋 Substitutes Bench</h3>
+                            <div class="bench-container" id="benchContainer"></div>
+                        </div>
+
+                        <!-- Middle Panel: Football Pitch -->
+                        <div class="formation-panel pitch-panel" style="display:flex; flex-direction:column; gap:10px;">
+                            <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <div style="display:flex; gap:6px;">
+                                    <button id="addSlotBtn" class="btn-success" style="width:auto; margin-top:0; padding:8px 14px; font-size:13px;">➕ Add Slot</button>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <button id="undoFBtn" class="btn-primary" style="width:auto; margin-top:0; padding:6px 12px; font-size:11px;">↩ Undo</button>
+                                    <button id="redoFBtn" class="btn-primary" style="width:auto; margin-top:0; padding:6px 12px; font-size:11px;">↪ Redo</button>
+                                    <button id="saveFormationLayoutBtn" class="btn-success" style="width:auto; margin-top:0; padding:8px 16px; font-size:13px;">💾 Save Layout</button>
+                                </div>
+                            </div>
+
+                            <div class="football-pitch-container" id="footballPitch">
+                                <div class="pitch-line pitch-outer"></div>
+                                <div class="pitch-line pitch-center-circle"></div>
+                                <div class="pitch-line pitch-center-line"></div>
+                                <div class="pitch-line pitch-top-area"></div>
+                                <div class="pitch-line pitch-top-box"></div>
+                                <div class="pitch-line pitch-bottom-area"></div>
+                                <div class="pitch-line pitch-bottom-box"></div>
+                                
+                                <div id="pitchSlotsContainer" style="position:absolute; inset:0; width:100%; height:100%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Player Inspector & Transformation Controls -->
+                        <div class="formation-panel details-panel" id="playerProfilePanel">
+                            <h3>🔍 Slot & Player Inspector</h3>
+                            <div id="profileEmptyState" style="text-align:center; padding:40px 10px; color:#aaa; font-style:italic; font-size:13px;">
+                                Click any player card on the field, bench, or list to inspect stats, rotate, or scale slots.
+                            </div>
+                            <div id="profileActiveState" style="display:none; text-align:center;">
+                                <div style="margin-top:15px; position:relative; display:inline-block;">
+                                    <img id="prof_photo" src="https://placehold.co/150x150?text=PHOTO" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:3px solid #00f0ff; transition: transform 0.3s ease;">
+                                    <span id="prof_number" style="position:absolute; bottom:0; right:0; background:#00f0ff; color:#111; font-size:13px; font-weight:900; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;">7</span>
+                                </div>
+                                <h2 id="prof_name" style="margin-top:10px; font-size:18px; font-weight:800; color:#fff;">Lionel Messi</h2>
+                                <div id="prof_roles" style="display:flex; justify-content:center; gap:8px; margin-top:5px; margin-bottom:15px;"></div>
+                                
+                                <div style="background: rgba(255,255,255,0.02); padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.05); text-align:left; font-size:12px; line-height:1.7; margin-bottom:15px;">
+                                    <div><b>Preferred Position:</b> <span id="prof_pref" style="color:#00f0ff; font-weight:700;">ST</span></div>
+                                    <div><b>Secondary Positions:</b> <span id="prof_sec">-</span></div>
+                                    <div><b>Squad Status:</b> <span id="prof_status">Active</span></div>
+                                    <div><b>Current Assignment:</b> <span id="prof_slot">None</span></div>
+                                </div>
+
+                                <!-- Transformation Sliders (Unlocked Mode Only) -->
+                                <div id="transformationControls" style="text-align:left; margin-bottom:15px; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px;">
+                                    <h4 style="font-size:11px; color:#00f0ff; margin-bottom:8px;">SLOT TRANSFORMS</h4>
+                                    <label style="font-size:10px; color:#aaa;">Rotation Angle (Degrees)</label>
+                                    <input type="range" id="slotRotateSlider" min="0" max="360" value="0" style="width:100%; margin-bottom:8px;">
+                                    
+                                    <label style="font-size:10px; color:#aaa;">Slot Size scale</label>
+                                    <input type="range" id="slotSizeSlider" min="45" max="90" value="60" style="width:100%;">
+                                </div>
+
+                                <button id="unassignPlayerBtn" class="btn-danger-outline" style="margin-top:5px; font-size:13px; padding:10px; width:100%;">🏃 Unassign Player</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Database Saved Versions -->
+                    <div style="margin-top:20px; background: rgba(17, 24, 39, 0.4); padding: 15px; border-radius: 12px; border:1px solid rgba(255,255,255,0.05);">
+                        <h3 style="font-size:14px;">🕒 Database Saved Versions</h3>
+                        <div id="historyLogContainer" style="display:flex; gap:10px; overflow-x:auto; padding:10px 0;">
+                            <span style="font-size:12px; color:#999; font-style:italic;">No historical records saved in DB.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WRONG POSITION WARNING MODAL (V3 UX Pop-up) -->
+                <div id="positionWarningModal" class="modal-wrapper hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:10000; backdrop-filter:blur(10px);">
+                    <div class="card" style="width:90%; max-width:400px; padding:25px; text-align:center; background:#111722; border:1.5px solid #ff4d67; box-shadow:0 0 30px rgba(255,77,103,0.3); border-radius:20px;">
+                        <span style="font-size:40px;">⚠️</span>
+                        <h3 style="color:#ff4d67; font-size:18px; margin-top:10px;">Preferred Position Warning</h3>
+                        <p id="posWarningText" style="font-size:13px; color:#bfc6d3; margin:15px 0; line-height:1.6;"></p>
+                        
+                        <div style="margin-bottom:15px;">
+                            <label style="font-size:11px; font-weight:normal; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                <input type="checkbox" id="rememberPosChoice"> Remember choice for this session
+                            </label>
+                        </div>
+
+                        <div style="display:flex; gap:10px;">
+                            <button id="posAssignAnywayBtn" class="btn-success" style="margin-top:0; flex:1; font-size:13px; padding:10px;">Assign Anyway</button>
+                            <button id="posCancelBtn" class="btn-danger-outline" style="margin-top:0; flex:1; font-size:13px; padding:10px;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <datalist id="teamList"></datalist>
+
+<script type="module" src="dashboard.js"></script>
+
+</body>
+</html>

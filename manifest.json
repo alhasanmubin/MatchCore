@@ -1,0 +1,21 @@
+{
+  "short_name": "MatchCore",
+  "name": "MatchCore Football Live Hub",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/05070d/00e676?text=MC",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://placehold.co/512x512/05070d/00e676?text=MatchCore",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#05070d",
+  "theme_color": "#0a0b10",
+  "display": "standalone",
+  "orientation": "portrait"
+}

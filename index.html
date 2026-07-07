@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0b10">
+    <meta name="description" content="CS Football Live Hub - Realtime match updates">
+    <title>CS Football Live Hub</title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="offline-banner" class="offline-banner">Connection Lost - Reconnecting...</div>
+
+    <!-- ব্যানার কনটেইনার যুক্ত করা হলো -->
+    <div id="banner-wrap" class="banner-container hidden">
+        <img id="viewer-banner" src="" alt="Tournament Banner">
+    </div>
+
+    <header>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+            <h1 id="tournament-name">CS Football Live Hub</h1>
+            <span id="active-season" class="season-badge hidden"></span>
+        </div>
+        <div id="live-badge" class="badge hidden">
+            <span class="pulse"></span> LIVE
+        </div>
+    </header>
+
+    <main>
+        <!-- আধুনিক মোবাইল-ফ্রেন্ডলি ট্যাব নেভিগেশন -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" id="tab-btn-match" data-tab="match-section">⚽ Live Match</button>
+            <button class="tab-btn" id="tab-btn-table" data-tab="table-section">🏆 Points Table</button>
+            <button class="tab-btn" id="tab-btn-schedule" data-tab="schedule-section">📅 Schedule</button>
+            <button class="tab-btn hidden" id="tab-btn-viewer-formations" data-tab="viewer-formation-section">🏟 Formations</button>
+        </div>
+
+        <section id="match-section" class="glass-card tab-content active-tab">
+            <div id="match-content">
+                <div class="teams-header">
+                    <div class="team-box">
+                        <img id="team-a-logo" class="team-logo" src="assets/default.png">
+                        <span id="team-a-name">--</span>
+                    </div>
+                    <div class="vs-text">VS</div>
+                    <div class="team-box">
+                        <img id="team-b-logo" class="team-logo" src="assets/default.png">
+                        <span id="team-b-name">--</span>
+                    </div>
+                </div>
+
+                <div class="score-display">
+                    <div id="score">0 - 0</div>
+                    <div id="penalty-shootout"></div>
+                </div>
+
+                <div class="match-meta">
+                    <span id="status">---</span>
+                    <span class="dot">•</span>
+                    <span id="match-timer">--</span>
+                </div>
+
+                <!-- লাইভ স্পোর্টিং গোল টাইমলাইন উইজেট -->
+                <div id="goals-timeline-container" class="viewer-timeline hidden">
+                    <h4>⚽ Match Goals</h4>
+                    <div id="viewer-goals"></div>
+                </div>
+
+                <!-- লাইভ স্পোর্টিং বুকিংস টাইমলাইন উইজেট -->
+                <div id="cards-timeline-container" class="viewer-timeline hidden">
+                    <h4>🟨 Bookings & Discipline</h4>
+                    <div id="viewer-cards"></div>
+                </div>
+
+                <div id="cards" class="card-info hidden"></div>
+                <div id="commentary" class="commentary"></div>
+                <div id="video-container" class="video-container"></div>
+            </div>
+        </section>
+
+        <section id="table-section" class="table-section glass-card tab-content">
+            <h3>🏆 Points Table</h3>
+            <div class="table-wrapper">
+                <table id="pointsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Team</th>
+                            <th>MP</th>
+                            <th>W</th>
+                            <th>D</th>
+                            <th>L</th>
+                            <th>GF</th>
+                            <th>GA</th>
+                            <th>GD</th>
+                            <th>PTS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="schedule-section" class="schedule-section glass-card tab-content">
+            <h3>📅 Match Schedule</h3>
+            <div id="schedule-body"></div>
+        </section>
+
+        <section id="viewer-formation-section" class="glass-card tab-content">
+            <h3>🏟 Squad Formations</h3>
+            <div class="row-grid" style="grid-template-columns: 1fr 1fr; gap:20px; margin-top: 15px;">
+                <div>
+                    <h4 id="viewer-home-f-name" style="text-align:center; font-size:14px; margin-bottom:8px; color:var(--green);">Home Team</h4>
+                    <div class="football-pitch-container" id="v_pitchHome" style="position:relative; width:100%; aspect-ratio:4/5; border-radius:12px; border:2px solid #fff; overflow:hidden;">
+                        <div class="pitch-line pitch-outer"></div>
+                        <div class="pitch-line pitch-center-circle"></div>
+                        <div class="pitch-line pitch-center-line"></div>
+                        <div class="pitch-line pitch-top-area"></div>
+                        <div class="pitch-line pitch-top-box"></div>
+                        <div class="pitch-line pitch-bottom-area"></div>
+                        <div class="pitch-line pitch-bottom-box"></div>
+                        <div id="v_homeSlots" style="position:absolute; inset:0;"></div>
+                    </div>
+                </div>
+                <div>
+                    <h4 id="viewer-away-f-name" style="text-align:center; font-size:14px; margin-bottom:8px; color:var(--red);">Away Team</h4>
+                    <div class="football-pitch-container" id="v_pitchAway" style="position:relative; width:100%; aspect-ratio:4/5; border-radius:12px; border:2px solid #fff; overflow:hidden;">
+                        <div class="pitch-line pitch-outer"></div>
+                        <div class="pitch-line pitch-center-circle"></div>
+                        <div class="pitch-line pitch-center-line"></div>
+                        <div class="pitch-line pitch-top-area"></div>
+                        <div class="pitch-line pitch-top-box"></div>
+                        <div class="pitch-line pitch-bottom-area"></div>
+                        <div class="pitch-line pitch-bottom-box"></div>
+                        <div id="v_awaySlots" style="position:absolute; inset:0;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Last Updated: <span id="last-updated">-</span></p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
